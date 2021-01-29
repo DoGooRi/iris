@@ -3,6 +3,7 @@ import tempfile
 import requests
 
 from pyspark import StorageLevel
+from pyspark.ml.classification import RandomForestClassifier
 from pyspark.ml.feature import VectorAssembler, StringIndexer
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import rand
@@ -88,6 +89,26 @@ def main():
     iris_df.createOrReplaceTempView("iris")
     results = spark.sql("SELECT * FROM iris ORDER BY rand")
     results.show();
+
+    random_forest_classifier = RandomForestClassifier(
+        featuresCol="vectors",
+        labelCol="indexed"
+    )
+    random_forest_classifier_fitted = random_forest_classifier.fit(iris_df)
+    iris_df = random_forest_classifier_fitted.transform(iris_df)
+    iris_df.createOrReplaceTempView("iris")
+    results = spark.sql("SELECT * FROM iris ORDER BY rand")
+    results.show()
+
+    # Calculate accuracy
+    results = spark.sql("""
+            SELECT
+                AVG (CASE
+                    WHEN indexed = prediction THEN 1
+                    ELSE 0 END) AS correct
+            FROM iris
+    """)
+    results.show()
 
     return
 
