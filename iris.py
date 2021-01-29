@@ -1,8 +1,11 @@
 import sys
 import tempfile
 import requests
+
 from pyspark import StorageLevel
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import rand
+
 
 def main():
     # Setup Spark
@@ -58,6 +61,12 @@ def main():
         """
     )
     average_by_class.show()
+
+    # Add a new column
+    iris_df = iris_df.withColumn("rand", rand(seed=42))
+    iris_df.createOrReplaceTempView("iris")
+    results = spark.sql("SELECT * FROM iris ORDER BY rand")
+    results.show()
 
     return
 
