@@ -3,6 +3,7 @@ import tempfile
 import requests
 
 from pyspark import StorageLevel
+from pyspark.ml.feature import VectorAssembler
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import rand
 
@@ -67,6 +68,19 @@ def main():
     iris_df.createOrReplaceTempView("iris")
     results = spark.sql("SELECT * FROM iris ORDER BY rand")
     results.show()
+
+    vector_assembler = VectorAssembler(
+        inputCols=[
+            "sepal_length",
+            "sepal_width",
+            "petal_length",
+            "petal_width",
+        ],
+        outputCol="vectors"
+    )
+
+    iris_df = vector_assembler.transform(iris_df)
+    iris_df.show()
 
     return
 
