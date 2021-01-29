@@ -3,7 +3,7 @@ import tempfile
 import requests
 
 from pyspark import StorageLevel
-from pyspark.ml.feature import VectorAssembler
+from pyspark.ml.feature import VectorAssembler, StringIndexer
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import rand
 
@@ -81,6 +81,13 @@ def main():
 
     iris_df = vector_assembler.transform(iris_df)
     iris_df.show()
+
+    string_indexer = StringIndexer(inputCol="class", outputCol="indexed")
+    indexer_fitted = string_indexer.fit(iris_df)
+    iris_df = indexer_fitted.transform(iris_df)
+    iris_df.createOrReplaceTempView("iris")
+    results = spark.sql("SELECT * FROM iris ORDER BY rand")
+    results.show();
 
     return
 
